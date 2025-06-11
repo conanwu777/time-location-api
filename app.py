@@ -11,9 +11,18 @@ def home():
     
 @app.route("/api/location", methods=["GET"])
 def location():
-    ip_data = requests.get("http://ip-api.com/json/").json()
+    # Get the client IP, considering proxy headers
+    client_ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+
+    # Use the IP to get location info
+    try:
+        ip_data = requests.get(f"http://ip-api.com/json/{client_ip}").json()
+    except Exception as e:
+        print(f"Failed to fetch IP data: {e}")
+        ip_data = {}
 
     return jsonify({
+        "ip": client_ip,
         "city": ip_data.get("city"),
         "country": ip_data.get("country")
     })
