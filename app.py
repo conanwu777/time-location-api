@@ -13,7 +13,7 @@ tf = TimezoneFinder()
 def home():
     return render_template("index.html")
 
-@app.route("/api/location", methods=["GET", "POST"])
+@app.route("/api/location", methods=["POST"])
 def receive_location():
     data = request.get_json()
     lat = data.get("lat")
@@ -38,6 +38,14 @@ def receive_location():
 
     session["location"] = result
     return jsonify(result)
+
+@app.route("/api/location", methods=["GET"])
+def get_location():
+    location = session.get("location")
+    if location:
+        return jsonify(location)
+    else:
+        return jsonify({"error": "No location stored in session"}), 404
 
 @app.route("/api/time", methods=["GET"])
 def get_time():
