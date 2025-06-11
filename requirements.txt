@@ -3,3 +3,4 @@ requests
 pytz
 gunicorn
 timezonefinder
+geopy
