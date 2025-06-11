@@ -8,6 +8,28 @@ app = Flask(__name__)
 @app.route("/")
 def home():
     return "Time & Location API is running"
+    
+@app.route("/api/location", methods=["GET"])
+def location():
+    ip_data = requests.get("http://ip-api.com/json/").json()
+
+    return jsonify({
+        "city": ip_data.get("city"),
+        "country": ip_data.get("country"),
+        "timezone": tz_name
+    })
+
+@app.route("/api/time", methods=["GET"])
+def time():
+    ip_data = requests.get("http://ip-api.com/json/").json()
+    tz_name = ip_data.get("timezone", "UTC")
+    local_tz = pytz.timezone(tz_name)
+    local_time = datetime.now(local_tz).isoformat()
+    
+    return jsonify({
+        "timestamp": local_time,
+        "timezone": tz_name
+    })
 
 @app.route("/api/time-location", methods=["GET"])
 def time_location():
