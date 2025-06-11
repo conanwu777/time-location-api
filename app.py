@@ -9,7 +9,33 @@ app.secret_key = "your_secret_key"  # Required for session support
 @app.route("/")
 def home():
     return render_template("index.html")
-    
+
+@app.route("/api/location", methods=["POST"])
+def receive_location():
+    from geopy.geocoders import Nominatim
+
+    data = request.get_json()
+    lat = data.get("lat")
+    lng = data.get("lng")
+
+    geolocator = Nominatim(user_agent="psy-location")
+
+    try:
+        location = geolocator.reverse((lat, lng), language='en').raw
+        address = location.get("address", {})
+        city = address.get("city") or address.get("town") or address.get("village")
+        country = address.get("country")
+
+        return jsonify({
+            "lat": lat,
+            "lng": lng,
+            "city": city,
+            "country": country
+        })
+    except Exception as e:
+        print("Geolocation error:", e)
+        return jsonify({"error": "Could not resolve coordinates"}), 500
+        
 @app.route("/api/location", methods=["GET"])
 def get_location():
     if "location" in session:
