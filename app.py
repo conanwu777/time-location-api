@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, session
 from datetime import datetime
 from timezonefinder import TimezoneFinder
+from geopy.geocoders import Nominatim
 
 import pytz
 import requests
