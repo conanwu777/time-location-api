@@ -1,10 +1,13 @@
 from flask import Flask, render_template, request, jsonify, session
 from datetime import datetime
+from timezonefinder import TimezoneFinder
+
 import pytz
 import requests
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Required for session support
+tf = TimezoneFinder()
 
 @app.route("/")
 def home():
@@ -12,67 +15,41 @@ def home():
 
 @app.route("/api/location", methods=["POST"])
 def receive_location():
-    from geopy.geocoders import Nominatim
-
     data = request.get_json()
     lat = data.get("lat")
     lng = data.get("lng")
 
-    geolocator = Nominatim(user_agent="psy-location")
+    # Reverse geocode
+    location = geolocator.reverse((lat, lng), language='en').raw
+    address = location.get("address", {})
+    city = address.get("city") or address.get("town") or address.get("village")
+    country = address.get("country")
 
-    try:
-        location = geolocator.reverse((lat, lng), language='en').raw
-        address = location.get("address", {})
-        city = address.get("city") or address.get("town") or address.get("village")
-        country = address.get("country")
+    # Get timezone from coordinates
+    timezone = tf.timezone_at(lat=lat, lng=lng) or "UTC"
 
-        return jsonify({
-            "lat": lat,
-            "lng": lng,
-            "city": city,
-            "country": country
-        })
-    except Exception as e:
-        print("Geolocation error:", e)
-        return jsonify({"error": "Could not resolve coordinates"}), 500
-        
-@app.route("/api/location", methods=["GET"])
-def get_location():
-    if "location" in session:
-        return jsonify(session["location"])
+    result = {
+        "lat": lat,
+        "lng": lng,
+        "city": city,
+        "country": country,
+        "timezone": timezone
+    }
 
-    x_forwarded_for = request.headers.get("X-Forwarded-For", request.remote_addr)
-    ip_list = [ip.strip() for ip in x_forwarded_for.split(",")]
-    public_ip = next(
-        (ip for ip in ip_list if not ip.startswith("10.") and not ip.startswith("172.") and not ip.startswith("192.168.")),
-        request.remote_addr
-    )
-
-    try:
-        ip_data = requests.get(f"http://ip-api.com/json/{public_ip}").json()
-        location = {
-            "ip": public_ip,
-            "city": ip_data.get("city"),
-            "country": ip_data.get("country"),
-            "timezone": ip_data.get("timezone") or "UTC"
-        }
-        session["location"] = location
-    except Exception as e:
-        print(f"Location fetch failed: {e}")
-        location = {"ip": public_ip, "city": None, "country": None, "timezone": "UTC"}
-        session["location"] = location
-
-    return jsonify(location)
+    session["location"] = result
+    return jsonify(result)
 
 @app.route("/api/time", methods=["GET"])
 def get_time():
-    location = session.get("location", {})
-    timezone = location.get("timezone", "UTC")
+    # Retrieve timezone from session if available, otherwise default to UTC
+    timezone = session.get("location", {}).get("timezone", "UTC")
 
     try:
         now = datetime.now(pytz.timezone(timezone))
-    except Exception:
+    except Exception as e:
+        print("Invalid timezone, falling back to UTC:", e)
         now = datetime.utcnow()
+        timezone = "UTC"
 
     return jsonify({
         "timestamp": now.isoformat(),
