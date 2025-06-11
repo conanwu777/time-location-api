@@ -2,10 +2,12 @@ from flask import Flask, render_template, request, jsonify, session
 from datetime import datetime
 from timezonefinder import TimezoneFinder
 from geopy.geocoders import Nominatim
+from flask_cors import CORS
 
 import pytz
 import requests
 
+CORS(app)
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Required for session support
 tf = TimezoneFinder()
