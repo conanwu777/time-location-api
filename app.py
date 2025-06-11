@@ -15,11 +15,7 @@ def location():
     client_ip = request.headers.get("X-Forwarded-For", request.remote_addr)
 
     # Use the IP to get location info
-    try:
-        ip_data = requests.get(f"http://ip-api.com/json/{client_ip}").json()
-    except Exception as e:
-        print(f"Failed to fetch IP data: {e}")
-        ip_data = {}
+    ip_data = requests.get(f"http://ip-api.com/json/{client_ip}").json()
 
     return jsonify({
         "ip": client_ip,
