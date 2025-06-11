@@ -4,30 +4,18 @@
   <title>Psy Time/Location Tracker</title>
 </head>
 <body>
-  <h1>Welcome to Psy</h1>
   <p>Getting your location...</p>
 
   <script>
-    navigator.geolocation.getCurrentPosition(
-      function(position) {
-        fetch("/api/location", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          })
-        })
-        .then(response => response.json())
-        .then(data => console.log("Location sent:", data))
-        .catch(err => console.error("Error sending location:", err));
-      },
-      function(error) {
-        console.error("Geolocation error:", error);
-      }
-    );
+  navigator.geolocation.getCurrentPosition(
+    function(position) {
+      console.log("Coordinates:", position.coords.latitude, position.coords.longitude);
+      // continue with fetch...
+    },
+    function(error) {
+      console.error("Geolocation error:", error);
+    }
+  );
   </script>
 </body>
 </html>
