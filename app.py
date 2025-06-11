@@ -11,7 +11,8 @@ def home():
 
 @app.route("/api/time-location", methods=["GET"])
 def time_location():
-    ip_data = requests.get("http://ip-api.com/json/").json()
+    client_ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+    ip_data = requests.get(f"http://ip-api.com/json/{client_ip}").json()
     tz_name = ip_data.get("timezone", "UTC")
     local_tz = pytz.timezone(tz_name)
     local_time = datetime.now(local_tz).isoformat()
