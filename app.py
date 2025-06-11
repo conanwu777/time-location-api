@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, jsonify
 import requests
 from datetime import datetime
 import pytz  # or use zoneinfo if you're on 3.9+
@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "Time & Location API is running"
+    return render_template("index.html")
     
 @app.route("/api/location", methods=["GET"])
 def location():
