@@ -6,16 +6,40 @@
 <body>
   <p>Getting your location...</p>
 
-  <script>
-  navigator.geolocation.getCurrentPosition(
-    function(position) {
-      console.log("Coordinates:", position.coords.latitude, position.coords.longitude);
-      // continue with fetch...
-    },
-    function(error) {
-      console.error("Geolocation error:", error);
-    }
-  );
+<script>
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        const payload = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+
+        fetch("/api/location", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+          const status = document.getElementById("status");
+          if (data.city && data.country) {
+            status.textContent = `You are in ${data.city}, ${data.country}.`;
+          } else {
+            status.textContent = `Location resolved: lat ${payload.lat}, lng ${payload.lng}`;
+          }
+        })
+        .catch(err => {
+          console.error("Error sending location:", err);
+          document.getElementById("status").textContent = "Error resolving location.";
+        });
+      },
+      function(error) {
+        console.error("Geolocation error:", error);
+        document.getElementById("status").textContent = "Could not get your location.";
+      }
+    );
   </script>
 </body>
 </html>
