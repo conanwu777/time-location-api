@@ -13,7 +13,7 @@ tf = TimezoneFinder()
 def home():
     return render_template("index.html")
 
-@app.route("/api/location", methods=["POST"])
+@app.route("/api/location", methods=["GET", "POST"])
 def receive_location():
     data = request.get_json()
     lat = data.get("lat")
