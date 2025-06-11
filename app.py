@@ -19,25 +19,33 @@ def receive_location():
     lat = data.get("lat")
     lng = data.get("lng")
 
-    # Reverse geocode
-    location = geolocator.reverse((lat, lng), language='en').raw
-    address = location.get("address", {})
-    city = address.get("city") or address.get("town") or address.get("village")
-    country = address.get("country")
+    print(f"Received lat/lng: {lat}, {lng}")
 
-    # Get timezone from coordinates
-    timezone = tf.timezone_at(lat=lat, lng=lng) or "UTC"
+    try:
+        # ✅ Create geolocator here
+        geolocator = Nominatim(user_agent="psy-location")
+        location = geolocator.reverse((lat, lng), language='en').raw
 
-    result = {
-        "lat": lat,
-        "lng": lng,
-        "city": city,
-        "country": country,
-        "timezone": timezone
-    }
+        address = location.get("address", {})
+        city = address.get("city") or address.get("town") or address.get("village")
+        country = address.get("country")
 
-    session["location"] = result
-    return jsonify(result)
+        timezone = tf.timezone_at(lat=lat, lng=lng) or "UTC"
+
+        result = {
+            "lat": lat,
+            "lng": lng,
+            "city": city,
+            "country": country,
+            "timezone": timezone
+        }
+
+        session["location"] = result
+        return jsonify(result)
+
+    except Exception as e:
+        print("Error in /api/location:", e)
+        return jsonify({"error": "Failed to resolve location"}), 500
 
 @app.route("/api/location", methods=["GET"])
 def get_location():
