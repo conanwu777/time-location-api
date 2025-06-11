@@ -15,8 +15,7 @@ def location():
 
     return jsonify({
         "city": ip_data.get("city"),
-        "country": ip_data.get("country"),
-        "timezone": tz_name
+        "country": ip_data.get("country")
     })
 
 @app.route("/api/time", methods=["GET"])
